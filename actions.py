@@ -2,20 +2,36 @@
 
 """
 Easy access to actions for the project through automated command-line invokations.
+Janus Bo Andersen, 2023.
 
 Examples: 
-    ./actions.py --conan-install --configure-project --build-run-project --with-tests --debug
-    ./actions.py --conan-install --configure-project --build-run-project --with-tests --debug --run-coverage
 
-    ./actions.py --conan-install --build-test-project --debug --run-coverage
+    Help on how to invoke from the command line
+    ./actions.py --help
 
-    ./actions.py --build-run-project --with-tests --debug
-    ./actions.py --configure-project --build-test-project --debug
+    Install dependencies with Conan and configure project with CMake:
+    ./actions.py --conan-install --configure-project --with-tests --debug
+
+    See some available targets after configuration
     ./actions.py --build-target-list
+    ./actions.py --test-target-list
+    ./actions.py --clang-tidy-target-list
+    ./actions.py --docs-target-list
+
+    Subsequently build (compile) and run the app:
+    ./actions.py --build-run-project
+
+    All in one step:
+    ./actions.py --conan-install --configure-project --build-run-project --with-tests --debug
+
+    Unit tests were also built (--with-tests), so run these:
+    ./actions.py --build-test-project
+
+    As above, and also run the code coverage analysis (extra compile step)
+    ./actions.py --build-test-project --run-coverage
 
 Tips:
 - Easiest, if this file is executable (chmod +x). Otherwise use python3 ...
-- See ./actions.py --help
 
 This tool works as a state-machine through three global dicts
 - global_params         : Loaded (/inferred) parameters of the project
