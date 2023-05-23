@@ -9,7 +9,7 @@
 
 # Our own test executable main() (discovers all compiled tests and runs them)
 set(TEST_EXECUTABLE main_test.cpp)
-set(TEST_DIR testfiles)
+set(TEST_DIR testcases)
 
 # The test files containing unit tests/cases to be compiled (no auto file discovery!).
 set(TEST_FILES 
