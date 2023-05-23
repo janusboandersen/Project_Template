@@ -37,6 +37,15 @@ else()
     )
     FetchContent_MakeAvailable(fmt)
 
+    # gtest: Google Test & Mock
+    FetchContent_Declare(
+        gtest
+        GIT_REPOSITORY https://github.com/google/googletest
+        GIT_TAG 1.13.0
+        GIT_SHALLOW TRUE
+    )
+    FetchContent_MakeAvailable(gtest)
+
     # spdlog: Logging lib
     #FetchContent_Declare(
     #    spdlog

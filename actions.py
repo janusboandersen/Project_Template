@@ -6,6 +6,9 @@ Easy access to actions for the project through automated command-line invokation
 Examples: 
     ./actions.py --conan-install --configure-project --build-run-project --with-tests --debug
     ./actions.py --conan-install --configure-project --build-run-project --with-tests --debug --run-coverage
+
+    ./actions.py --conan-install --build-test-project --debug --run-coverage
+
     ./actions.py --build-run-project --with-tests --debug
     ./actions.py --configure-project --build-test-project --debug
     ./actions.py --build-target-list
@@ -82,6 +85,7 @@ def set_global_params():
         "dependency-graph-output"   : os.path.join(os.getenv('PWD'), "build", "dependency_graph.png"),
 
         "cmake-cache-file"          : os.path.join(os.getenv('PWD'), "build", "CMakeCache.txt"),
+        "cmake-build-parallel-level": 8,                                                                        # Number of cores
 
         "binary-app-directory"      : os.path.join(os.getenv('PWD'), "build", "app"),
         "binary-app-postfix"        : "_run",
@@ -111,7 +115,7 @@ def set_global_params():
 
         # These actions will trigger a new CMake configuration run
         "action-triggers-config"    : [
-                                        "configure_project"
+                                        "configure_project",
                                     ],
     }
 
@@ -170,7 +174,7 @@ def set_shell_commands():
 
         "cmake-build-target-cmd"    : f"cmake --build {global_params['build-directory']} --target ",        # + <target_name>
 
-        "cmake-build-default-cmd"   : f"cmake --build {global_params['build-directory']}",
+        "cmake-build-default-cmd"   : f"cmake --build {global_params['build-directory']} -j {global_params['cmake-build-parallel-level']} ", # -j N for multicore build
 
         "execute-app-cmd"           : os.path.join(
                                         global_params['binary-app-directory'], 
@@ -391,7 +395,6 @@ def handle_args(args):
 
     # *** Testing ***
     if (args.build_test_project):
-        # This always requires a reconfig. So reconfig has been forced.
         os.system(shell_commands['cmake-build-default-cmd'])
         os.system(shell_commands['execute-tests-cmd'])
 
