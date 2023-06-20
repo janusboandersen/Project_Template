@@ -85,3 +85,8 @@ Actions for the project can be invoked using the `actions.py` script, or directl
     - `./actions.py --conan-install --configure-project --build-run-project --with-tests --debug`
 - As above, and also run the code coverage analysis (extra compile step)
     - `./actions.py --build-test-project --run-coverage`
+
+## To-do
+1. _Clang-Tidy_ is currently failing due to the g++ flag `-fprofile-abs-path`. 
+    - Solution: Implement [removal of flag](https://stackoverflow.com/questions/28344564/cmake-remove-a-compile-flag-for-a-single-translation-unit) from `compile_commands.json` before passing file to Clang-Tidy.
+2. Fully implement _ClangFormat_.
