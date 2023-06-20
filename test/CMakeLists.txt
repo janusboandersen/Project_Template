@@ -30,7 +30,7 @@ endif()
 # We are currently using our own entry point from main_test.cpp. Otherwise, link against BOTH gtest and gtest_main.
 target_link_libraries(${TESTRUNNER_NAME} PUBLIC ${LIBRARY_NAME})
 #  DEPRECATED: target_link_libraries(${TESTRUNNER_NAME} PUBLIC gtest)
-target_link_libraries(${TESTRUNNER_NAME} PUBLIC GTest::GTest)
+target_link_libraries(${TESTRUNNER_NAME} PUBLIC GTest::gtest GTest::gmock)
 
 if(ENABLE_COVERAGE)
 

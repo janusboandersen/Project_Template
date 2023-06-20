@@ -4,11 +4,11 @@ set(LIB_SOURCES
 
 # List header files, if needed for pre-compiling
 set(LIB_HEADERS
-    ProjectLib.h)
+    include/ProjectLib.h)
 
 # Include paths from our library
 set(LIB_INCLUDES 
-    "./")
+    "./include/")
 
 
 # Third-party dependencies in our library

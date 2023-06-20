@@ -1,4 +1,5 @@
-# CMake template for a modern C++17 project with toolchain
+# CMake template for a modern C++17 project with related toolchain
+# Made to run on CppDocker.
 # 
 
 # Directory structure:
@@ -7,7 +8,8 @@
 #   cmake/          CMake custom modules/functions
 #   config/         Header file(s) with configurable parameters
 #   docs/           Documentation by Doxygen
-#   src/            Own library files source code
+#   src/            Own component library files source code
+#   src/include     Header files for component library
 #   test/           Test files (suite) and test framework (GoogleTest)
 #   third_party/    Third-party libraries and dependencies
 #
@@ -19,7 +21,6 @@
 # ├── src/CMakelists.txt                         Library and dependecies
 # ├── config/CMakeLists.txt                      Auto-populate source code with project name, version, etc. 
 # ├── test/CMakeLists.txt                        Unit test executable using GoogleTest
-# |   └── GoogleTest_Framework/CMakeLists.txt     
 # └── third_party/CMakeLists.txt                 get/manage 3rd party dependencies
 #
 #
@@ -88,9 +89,14 @@ else()
 endif()
 message(STATUS "Use external package manager: ${USE_EXTERNAL_PACKAGE_MANAGER}.")
 
-# Code coverage, also modify test/CMakeLists.txt to ensure correct files
-if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+# Code coverage only makes sense for a debug build with tests
+# Also modify test/CMakeLists.txt to ensure correct files
+if((CMAKE_BUILD_TYPE STREQUAL "Debug") AND (BUILD_TESTS))
     set(ENABLE_COVERAGE TRUE)
+    message(STATUS "Enabled coverage.")
+else()
+    set(ENABLE_COVERAGE FALSE)
+    message(STATUS "Disabled coverage.")
 endif()
 
 # Names for compile targets
@@ -162,7 +168,6 @@ add_subdirectory(src)
 # Build unit tests from test/ (using Google Test Framework), in case that option is set ON from command line.
 if(BUILD_TESTS)
     add_subdirectory(test)
-    #string(APPEND CMAKE_CXX_FLAGS " --coverage")
 endif()
 
 # Build the app from app/
