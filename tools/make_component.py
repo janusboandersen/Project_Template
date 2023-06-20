@@ -3,10 +3,9 @@
 """
 Make scaffolding for a component
 
-Usage example:
-  Command: tools/make_component.py <group> <component_longname>
-  Effect: Will create scaffolding for a component contained in "group" with a name of "Component longname".
-  Example: tools/make_component.py algo merge_sort
+Command: tools/make_component.py <group> <component_longname>
+Effect: Will create scaffolding for a component contained in "group" with a name of "Component longname".
+Example: tools/make_component.py algo merge_sort
   
 Scaffolding is created using the templates in tools/templates, which are populated using this current script. The following filesystem effects occur:
 
