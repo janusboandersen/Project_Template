@@ -1,0 +1,25 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "~> Project_Template debug",
+            "cwd": "${workspaceFolder}",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "/root/dev/Project_Template/build/app/Project_Template_run",
+            "stopAtEntry": true,
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "preLaunchTask": "~> Build Project_Template",
+            "miDebuggerPath": "/usr/bin/gdb"
+        }
+    ]
+}
