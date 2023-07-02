@@ -66,6 +66,12 @@ Scaffolding is created using the templates in `tools/templates`. The following f
     - `test/CMakeLists.txt`:
         * -> TEST_FILES: + `${TEST_DIR}/<group>/<component_longname>.cpp`
 
+## Auto-generated configurations for VS Code
+Tool can emit JSON configurations for VSCode.
+Emits content for `launch.json` (debugger launch), `tasks.json` (configure, build, test, coverage) and `c_cpp_properties.json` (include paths from conan dependencies, intellisense settings, compile_commands, etc.).
+- `./actions.py --vscode-launch`
+- `./actions.py --vscode-tasks --with-tests --use-conan`
+- `./actions.py --vscode-properties --with-tests --use-conan`
 
 ## Building and running project
 Actions for the project can be invoked using the `actions.py` script, or directly through CMake. Try:

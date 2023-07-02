@@ -1,11 +1,6 @@
-# Build targets
-- To build and test the library, use the `bt.sh` script.
-- To build the library and run the main file, use the `br.sh` script.
-
-# Test suite for the Library
+# Test suite for the Project
 - GoogleTest is used for the entire collection of tests.
 - Test suite / all test cases are the `.cpp` files in `test/Testfiles`.
-- GoogleTest itself is in `test/GoogleTests_Framework`.
 
 ## Test Organization
 - Test are organized into files related to areas of Library usage.
