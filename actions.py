@@ -154,6 +154,7 @@ def set_global_params():
         # These actions will trigger a new CMake configuration run
         "action-triggers-config"    : [
                                         "configure_project",
+                                        "vscode_tasks",             # Needs target names (e.g. to know whether to build a coverage task)
                                         "vscode_properties"         # Needs to know compiler, paths
                                     ],
     }

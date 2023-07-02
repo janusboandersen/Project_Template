@@ -1,0 +1,82 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "type": "shell",
+            "label": "~> Configure Project_Template with debug symbols",
+            "detail": "Invoke CMake to configure project, required to build it at a later stage.",
+            "command": "/usr/bin/cmake",
+            "args": [
+                "-S",
+                "/root/dev/Project_Template",
+                "-B",
+                "/root/dev/Project_Template/build",
+                "-G",
+                "\"Unix",
+                "Makefiles\"",
+                "-DCMAKE_BUILD_TYPE=Debug",
+                "-DBUILD_TESTS=ON",
+                "--graphviz=/root/dev/Project_Template/build/dependency_graph/dependency_graph.dot",
+                "-DUSE_CONAN=ON",
+                "-DCMAKE_TOOLCHAIN_FILE=/root/dev/Project_Template/build/conan_deps/conan_toolchain.cmake",
+                "-DCMAKE_POLICY_DEFAULT_CMP0091=NEW"
+            ],
+            "options": {
+                "cwd": "/root/dev/Project_Template/build"
+            }
+        },
+        {
+            "type": "shell",
+            "label": "~> Build Project_Template",
+            "detail": "Invoke CMake to build project now.",
+            "command": "/usr/bin/cmake",
+            "args": [
+                "--build",
+                "/root/dev/Project_Template/build",
+                "-j8",
+                ""
+            ],
+            "options": {
+                "cwd": "/root/dev/Project_Template/build"
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "dependsOn": [
+                "~> Configure Project_Template with debug symbols"
+            ]
+        },
+        {
+            "type": "shell",
+            "label": "~> Run tests for Project_Template",
+            "detail": "Run all unit tests now.",
+            "command": "/root/dev/Project_Template/build/test/Project_Template_test_run",
+            "args": [],
+            "options": {
+                "cwd": "/root/dev/Project_Template/build"
+            },
+            "dependsOn": [
+                "~> Build Project_Template"
+            ]
+        },
+        {
+            "type": "shell",
+            "label": "~> Run code coverage for Project_Template",
+            "detail": "Analyze code coverage.",
+            "command": "/usr/bin/cmake",
+            "args": [
+                "--build",
+                "/root/dev/Project_Template/build",
+                "--target",
+                "coverage"
+            ],
+            "options": {
+                "cwd": "/root/dev/Project_Template/build"
+            },
+            "dependsOn": [
+                "~> Build Project_Template"
+            ]
+        }
+    ]
+}

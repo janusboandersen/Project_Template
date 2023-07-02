@@ -9,6 +9,7 @@
     },
     "workspaceMount": "source=${localWorkspaceFolder},target=/root/dev/Project_Template,type=bind",
     "workspaceFolder": "/root/dev/Project_Template",
+    "postStartCommand": "./actions.py --conan-install",
     "customizations": {
         "vscode": {
             "extensions": [
