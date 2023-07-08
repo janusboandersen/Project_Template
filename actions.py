@@ -83,8 +83,6 @@ from tools.conantoolchain_reader import get_conan_include_paths
 from tools.conanprofile_editor import ConanProfile
 
 
-cppstd = 17     # No effect on CMake, only Conan and VSCode
-
 fallback = {
     "project-name"              : "MISSING_PROJECT_NAME",
     "project-build-type"        : "Debug",
