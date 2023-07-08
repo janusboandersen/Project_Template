@@ -2,13 +2,14 @@
     "name": "CppProjectTemplateOnDocker",
     "image": "docker.io/janusboandersen/cppdevtest_ubuntu:0.8",
     "remoteEnv": {
-        "PROJECT_NAME": "Project_Template",
+        "PROJECT_NAME": "CppProjectTemplate",
         "PROJECT_BUILD_TYPE": "Debug",
         "PROJECT_BUILD_TESTS": "ON",
-        "PROJECT_USE_CONAN": "ON"
+        "PROJECT_USE_CONAN": "ON",
+        "PROJECT_CPP_STD": "17"
     },
-    "workspaceMount": "source=${localWorkspaceFolder},target=/root/dev/Project_Template,type=bind",
-    "workspaceFolder": "/root/dev/Project_Template",
+    "workspaceMount": "source=${localWorkspaceFolder},target=/root/dev/CppProjectTemplate,type=bind",
+    "workspaceFolder": "/root/dev/CppProjectTemplate",
     "postStartCommand": "./actions.py --conan-install",
     "customizations": {
         "vscode": {

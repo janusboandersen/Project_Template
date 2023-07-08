@@ -1,8 +1,8 @@
 # Project Template
 ## Features
-- CMake template for a modern C++17 project with modern code quality tools.
+- Project and CMake templates for a modern C++ project with modern code quality tools.
+- Made to run on [CppDocker](https://hub.docker.com/r/janusboandersen/cppdevtest_ubuntu) (docker.io/janusboandersen/cppdevtest_ubuntu:0.8). 
 - Package management via Conan, alternatively FetchContent.
-- Made to run on CppDocker. 
 
 
 ## Code quality tools
@@ -45,6 +45,17 @@ project/
  └── third_party/CMakeLists.txt                 get/manage 3rd party dependencies
 ```
 
+## Environment variables to control build
+Core settings for the project are controlled using environment variables and/or options when calling `actions.py`. If the variables aren't set, options should be provided. A settings resolver runs before any configurations are made. If neither variables nor options are available, built-in fallback values are used.
+
+| Env. Variable       | Example value    | Option flag                                            | Comments |
+| ------------------- | -----------------| ------------------------------------------------------ | -------- |
+| PROJECT_NAME        | Project_Template | None                                                   |          |
+| PROJECT_BUILD_TYPE  | Debug            | `--debug` or `--release`                               |          |
+| PROJECT_BUILD_TESTS | ON               | `--with-tests` or inferred from `--build-test-project` |          |
+| PROJECT_USE_CONAN   | ON               | `--use-conan`                                          |          |
+| PROJECT_CPP_STD     | 20               | None                                                   |          |
+
 
 ## Quick scaffolding for library components
 Includes a script to build scaffolding for library components:
@@ -70,11 +81,12 @@ Scaffolding is created using the templates in `tools/templates`. The following f
 Tool can emit JSON configurations for VSCode.
 Emits content for `launch.json` (debugger launch), `tasks.json` (configure, build, test, coverage) and `c_cpp_properties.json` (include paths from conan dependencies, intellisense settings, compile_commands, etc.).
 - `./actions.py --vscode-launch`
-- `./actions.py --vscode-tasks --with-tests --use-conan`
-- `./actions.py --vscode-properties --with-tests --use-conan`
+- `./actions.py --vscode-tasks`, or be more specific like `./actions.py --vscode-tasks --with-tests --use-conan`
+- `./actions.py --vscode-properties`, or as above `./actions.py --vscode-properties --with-tests --use-conan`
 
 ## Building and running project
-Actions for the project can be invoked using the `actions.py` script, or directly through CMake. Try:
+1. Use the VSCode configurations to build / debug the project.
+1. Specific actions for the project can be invoked using the `actions.py` script (or directly through CMake). Try:
 - Help on invokations from the command line
     - `./actions.py --help`
 - Install dependencies with Conan and configure project with CMake:

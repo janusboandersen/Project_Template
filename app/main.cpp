@@ -29,9 +29,10 @@ int main(void) {
     
     auto foo = Foo{21};
     std::cout << project_name << ": " << project_version << " (" << project_build_type << ")" << std::endl;
+    std::cout << "Compiled with C++ std. " << __cplusplus << std::endl;
     std::cout << "Sample output: " << foo.twoTimesMember() << std::endl;
     std::cout << "JSON version: " << foo.json_version() << std::endl;
     std::cout << "FMT version: " << foo.fmt_version() << std::endl;
-    std::cout << "New line added" << std::endl;
+    
     return 0;
 }

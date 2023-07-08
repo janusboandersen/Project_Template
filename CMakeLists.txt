@@ -1,4 +1,4 @@
-# CMake template for a modern C++17 project with related toolchain
+# CMake template for a modern C++ project with related toolchain
 # Made to run on CppDocker.
 # 
 
@@ -28,6 +28,7 @@
 # Var./opt.             Default/fallback
 # -------------         ------------------------
 # $PROJECT_NAME         None
+# $PROJECT_CPP_STD      17
 # -DCMAKE_BUILD_TYPE    Debug
 # -DBUILD_TESTS         False
 # -DUSE_CONAN           False - Use FetchContent
@@ -64,7 +65,7 @@ project(
     LANGUAGES CXX)
 
 # Define compiler standard
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD $ENV{PROJECT_CPP_STD})
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 

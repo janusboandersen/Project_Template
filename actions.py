@@ -4,6 +4,9 @@
 Easy access to actions for the project through automated command-line invokations.
 Janus Bo Andersen, 2023.
 
+Version 1.0.0
+
+
 Examples: 
 
     Help on how to invoke from the command line
@@ -57,7 +60,6 @@ Note: If any of these are not resolvable, fallback settings are used.
 
 Regarding VSCode configurations, see: https://code.visualstudio.com/docs/cpp/config-msvc#_create-a-build-task
 
-TODO: Figure out how/if to coordinate cppstd across files. Currently locked at 17. Not stored in CMakeCache.txt
 TODO: Refactor to move further utility functions to actions_helper.py
 
 Ver. 0.8.0 
@@ -72,12 +74,13 @@ from collections import OrderedDict
 import re
 from typing import List, Dict, OrderedDict, Union
 import json
-
+import time
 
 from tools.actions_helper import is_on_str, guard_single
 from tools.actions_helper import VSCodeLaunch, VSCodeTasks, VSCodeTask, VSCodeTaskOption, VSCodeTaskGroup, VSCodeProperties
 from tools.cmakecache_reader import CMakeCache
 from tools.conantoolchain_reader import get_conan_include_paths
+from tools.conanprofile_editor import ConanProfile
 
 
 cppstd = 17     # No effect on CMake, only Conan and VSCode
@@ -87,6 +90,7 @@ fallback = {
     "project-build-type"        : "Debug",
     "project-build-tests"       : "OFF",
     "project-use-conan"         : "ON",
+    "project-cpp-std"           : "17",
 }
 
 global_params = {}
@@ -101,6 +105,7 @@ def set_global_params():
         "project-build-type"        : os.getenv('PROJECT_BUILD_TYPE'),                                        # Modify as needed
         "project-build-tests"       : is_on_str(os.getenv('PROJECT_BUILD_TESTS')),                            # Same
         "project-use-conan"         : is_on_str(os.getenv('PROJECT_USE_CONAN')),
+        "project-cpp-std"           : os.getenv('PROJECT_CPP_STD'),
 
         "base-directory"            : os.getenv('PWD'),
         "build-directory"           : os.path.join(os.getenv('PWD'), "build"),
@@ -157,6 +162,12 @@ def set_global_params():
                                         "vscode_tasks",             # Needs target names (e.g. to know whether to build a coverage task)
                                         "vscode_properties"         # Needs to know compiler, paths
                                     ],
+
+        # These actions will trigger a (re-)run of conan-install
+        "action-triggers-conan"    : [
+                                        "clean_project",
+                                        "vscode_properties"         # Needs to read conan_toolchain in order to write include paths to properties file
+                                    ],
     }
 
 
@@ -199,7 +210,7 @@ def set_shell_commands():
                                       f"-s build_type={global_params['project-build-type']} "
                                       f"--output-folder={global_params['conan-output-directory']} "
                                       f"--build missing "
-                                      f"-s compiler.cppstd={cppstd}",
+                                      f"-s compiler.cppstd={global_params['project-cpp-std']}",
 
         "cmake-configure-cmd"       : f"cmake -S {global_params['base-directory']} "
                                       f"-B {global_params['build-directory']} "
@@ -380,6 +391,9 @@ def guard_all_required(args):
     override_conan = any([args.conan_install, args.use_conan])
     guard(env_var='PROJECT_USE_CONAN', param_name='project-use-conan', override_with_flag=override_conan, override_value="ON")
 
+    # CPP LANGUAGE STD
+    guard(env_var='PROJECT_CPP_STD', param_name='project-cpp-std')  # Always resolve
+
 
 def handle_args(args):
     """ 
@@ -391,22 +405,20 @@ def handle_args(args):
     - Perform runs before cleaning
     """
 
-    # *** Get some target info first, if needed ***
-    if is_requires_targets(args) and is_project_configured():
-        populate_targets()
-
-    elif is_requires_targets(args) and not is_project_configured():
-        print("Project not configured. Run --configure-project first, then any of the --*-list")
+    # *** Clean must precede all others ***
+    if (args.clean_project):
+        os.system(shell_commands['clean-project-cmd'])
 
 
-    # *** Conan ***
+    # *** Conan dependency resolution ***
     if (args.conan_profile):
         os.system(shell_commands['conan-profile-cmd'])
 
-    if (args.conan_install):
+    if (args.conan_install or is_triggers_conan_install(args)):
         if not is_conan_configured():
             # Run config for conan first to avoid fail
             os.system(shell_commands['conan-profile-cmd'])
+        force_global_settings_into_conan_profile()
         os.system(shell_commands['conan-install-cmd'])
 
 
@@ -419,6 +431,15 @@ def handle_args(args):
         
         print(f"CMake configuration call: {cmd}")
         os.system(cmd)
+
+
+    # *** Build global target object, if needed ***
+    if is_requires_targets(args) and is_project_configured():
+        print("Building target list.")
+        populate_targets()
+
+    elif is_requires_targets(args) and not is_project_configured():
+        print("Project not configured. Run --configure-project first, then any of the --*-list")
 
 
     # *** Output for *-list ***
@@ -454,14 +475,13 @@ def handle_args(args):
         os.system(shell_commands['execute-tests-cmd'])
 
     if (args.run_coverage):
-        # Verify that a "coverage" target exists... For now, obly expecting one cov target.
+        # Verify that a "coverage" target exists... For now, only expecting one cov target.
         # As this may be run together with the build step, re-populate targets
         populate_targets()
 
         if not is_known_target_of_type(target_type="coverage", target_id="coverage"):
             print("Project not configured for coverage. Check ENABLE_COVERAGE in CMakeLists.txt and further settings in test/CMakeLists.txt")
         else:
-            # Run the coverage target
             run_single_target("coverage")
     
 
@@ -482,23 +502,25 @@ def handle_args(args):
     if (args.docs):
         os.system(shell_commands['cmake-docs-cmd'])
 
-    if (args.clean_project):
-        os.system(shell_commands['clean-project-cmd'])
 
     # *** VSCode config runs ***
     if (args.vscode_launch):
         launch_json = make_vscode_launch_json()
-        print("Copy to ../.vscode/launch.json:")
+        print("Copy to .vscode/launch.json:")
         print(launch_json)
+
+    # If CMake files are required, we ust wait for Docker file system to update
+    if (args.vscode_tasks or args.vscode_properties):
+        time.sleep(1)
 
     if (args.vscode_tasks):
         tasks_json = make_vscode_tasks_json()
-        print("Copy to ../.vscode/tasks.json:")
+        print("Copy to .vscode/tasks.json:")
         print(tasks_json)
 
     if (args.vscode_properties):
         properties_json = make_vscode_properties_json()
-        print("Copy to ../.vscode/c_cpp_properties.json:")
+        print("Copy to .vscode/c_cpp_properties.json:")
         print(properties_json)
 
 
@@ -638,7 +660,7 @@ def make_vscode_properties_dict() -> VSCodeProperties:
                 'defines': [],
                 'compilerPath': cc['CMAKE_CXX_COMPILER'],
                 'cStandard': 'c17',
-                'cppStandard': f"c++{cppstd}",
+                'cppStandard': f"c++{global_params['project-cpp-std']}",
                 'intelliSenseMode': 'linux-gcc-x64',
                 'compileCommands': global_params['cmake-compile-commands']
             }
@@ -666,6 +688,22 @@ def is_conan_configured() -> bool:
     return bool(os.path.isfile(global_params['conan-profile-file']))
 
 
+def force_global_settings_into_conan_profile() -> None:
+    """
+    Updates the default conan profile with the current global settings, forcing Conan to use these for dependencies.
+    """
+    profile = ConanProfile(global_params['conan-profile-file'])
+    
+    profile['settings']['build_type'] = global_params['project-build-type']
+    profile['settings']['compiler.cppstd'] = global_params['project-cpp-std']    # gnu17/gnu20 for gnu extension incl., or 17/20 for pure std.
+    profile.save()
+
+    print(f"Overridden Conan Profile as ({global_params['conan-profile-file']})")
+    with open(global_params['conan-profile-file'], "r") as file:
+        upd_cfg = file.read()
+        print(upd_cfg)
+
+
 def is_any_from_group_set(args, in_group_list: List[str]) -> bool:
     """
     True if any arguments (i.e. commandline --options) from the group_list
@@ -678,6 +716,11 @@ def is_any_from_group_set(args, in_group_list: List[str]) -> bool:
 def is_requires_targets(args) -> bool:
     """ Return true if any options have been set that will require CMake cache in order to be aware of target names (i.e. project already configured). """
     return is_any_from_group_set(args, global_params['action-requires-targets'])
+
+
+def is_triggers_conan_install(args) -> bool:
+    """ Return true if any options have been set that will require CMake cache in order to be aware of target names (i.e. project already configured). """
+    return is_any_from_group_set(args, global_params['action-triggers-conan'])
 
 
 def is_triggers_guard(args) -> bool:
@@ -744,6 +787,7 @@ def populate_targets() -> None:
 
 def get_known_targets_of_type(target_type: str) -> List[str]:
     """ Returns the list of ids for a given target type (build, test, etc.). """
+    print(targets)
     return targets[target_type]['ids']
 
 
